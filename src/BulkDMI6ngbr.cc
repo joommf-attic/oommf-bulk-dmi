@@ -1,8 +1,17 @@
-/* FILE: BulkDMI6ngbr.cc            -*-Mode: c++-*-
+/* FILE: BulkDMI.cc
  *
- * Bulk Dzyaloshinskii-Moriya 6 neighbour energy derived from Oxs_Energy class.
- * Modification of Oxs_DMexchange6ngbr.h by Marijan Beg, Ryan A. Pepper, and Hans Fangohr (University of Southampton) January 2017
- */
+ * Bulk Dzyaloshinskii-Moriya energy:
+ *
+ * $w_\text{dmi} = D\mathbf{m} \cdot (\nabla \times \mathbf{m})$
+ *
+ * Modification by Marijan Beg, Ryan A. Pepper, and Hans Fangohr (University of Southampton) of Oxs_DMexchange6ngbr.h [1] - January 2017
+ *
+ * Developed as a part of OpenDreamKit Horizon 2020 European Research Infrastructure
+ * project (676541), and the EPSRC Programme grant on Skyrmionics (EP/N032128/1).
+ *
+ * [1] Rohart, S., & Thiaville, A. Physical Review B, 88, 184422 (2013).
+ *
+*/
 
 #include <string>
 
@@ -15,19 +24,19 @@
 #include "simstate.h"
 #include "threevector.h"
 #include "rectangularmesh.h"
-#include "BulkDMI6ngbr.h"
+#include "BulkDMI.h"
 #include "energy.h"		// Needed to make MSVC++ 5 happy
 
 OC_USE_STRING;
 
 // Oxs_Ext registration support
-OXS_EXT_REGISTER(Oxs_BulkDMI6ngbr);
+OXS_EXT_REGISTER(Oxs_BulkDMI);
 
 /* End includes */
 
 
 // Constructor
-Oxs_BulkDMI6ngbr::Oxs_BulkDMI6ngbr(
+Oxs_BulkDMI::Oxs_BulkDMI(
   const char* name,     // Child instance id
   Oxs_Director* newdtr, // App director
   const char* argstr)   // MIF input block parameters
@@ -120,7 +129,7 @@ Oxs_BulkDMI6ngbr::Oxs_BulkDMI6ngbr(
   VerifyAllInitArgsUsed();
 }
 
-Oxs_BulkDMI6ngbr::~Oxs_BulkDMI6ngbr()
+Oxs_BulkDMI::~Oxs_BulkDMI()
 {
   if(A_size>0 && D!=NULL) {
     delete[] D[0];
@@ -128,14 +137,14 @@ Oxs_BulkDMI6ngbr::~Oxs_BulkDMI6ngbr()
   }
 }
 
-OC_BOOL Oxs_BulkDMI6ngbr::Init()
+OC_BOOL Oxs_BulkDMI::Init()
 {
   mesh_id = 0;
   region_id.Release();
   return Oxs_Energy::Init();
 }
 
-void Oxs_BulkDMI6ngbr::GetEnergy
+void Oxs_BulkDMI::GetEnergy
 (const Oxs_SimState& state,
  Oxs_EnergyData& oed
  ) const
@@ -150,7 +159,7 @@ void Oxs_BulkDMI6ngbr::GetEnergy
     for(OC_INDEX i=0;i<size;i++) {
       state.mesh->Center(i,location);
       if((region_id[i] = atlas->GetRegionId(location))<0) {
-	String msg = String("Import mesh to Oxs_BulkDMI6ngbr::GetEnergy()"
+	String msg = String("Import mesh to Oxs_BulkDMI::GetEnergy()"
                             " routine of object ")
           + String(InstanceName())
 	  + String(" has points outside atlas ")
@@ -172,7 +181,7 @@ void Oxs_BulkDMI6ngbr::GetEnergy
   const Oxs_RectangularMesh* mesh
     = dynamic_cast<const Oxs_RectangularMesh*>(state.mesh);
   if(mesh==NULL) {
-    String msg = String("Import mesh to Oxs_BulkDMI6ngbr::GetEnergy()"
+    String msg = String("Import mesh to Oxs_BulkDMI::GetEnergy()"
                         " routine of object ")
       + String(InstanceName())
       + String(" is not an Oxs_RectangularMesh object.");
@@ -203,7 +212,6 @@ void Oxs_BulkDMI6ngbr::GetEnergy
 	}
 	OC_REAL8m* Drow = D[region_id[i]];
 	ThreeVector sum(0.,0.,0.);
-	ThreeVector zu(0.,0.,1.);
 
 	if(x>0) {
 	  OC_INDEX j = i-1;
