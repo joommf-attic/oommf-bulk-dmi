@@ -1,6 +1,7 @@
 Bulk Dzyaloshinkii-Moriya energy extension for OOMMF [1].
 
-$$w_\text{dmi} = D\mathbf{m} \cdot (\nabla \times \mathbf{m})$$
+.. math::
+   w_\text{dmi} = D \mathbf{m} \cdot (\nabla \times \mathbf{m})
 
 Marijan Beg, Ryan A. Pepper, and Hans Fangohr (University of
 Southampton), January 2017
