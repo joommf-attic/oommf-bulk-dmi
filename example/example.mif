@@ -9,7 +9,7 @@ Specify Oxs_MultiAtlas:atlas {
        xrange { -50e-9 50e-9 }
        yrange { -50e-9 50e-9 }
        zrange { -10e-9 10e-9 }
-	   name world
+       name world
   } }
 }
 
@@ -23,7 +23,7 @@ Specify Oxs_UniformExchange:HeisenbergEx {
 }
 
 #uniform DMI is used here
-Specify Oxs_BulkDMI6ngbr:DMEx [subst {
+Specify Oxs_BulkDMI:DMEx [subst {
   default_D $DD
   atlas :atlas
   D { 
