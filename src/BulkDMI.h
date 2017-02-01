@@ -1,11 +1,15 @@
-/* FILE: BulkDMI.h
+/* FILE: BulkDMI.cc
  *
- * Bulk Dzyaloshinskii-Moriya
+ * Bulk Dzyaloshinskii-Moriya energy:
  *
- * Modification by Marijan Beg, Ryan A. Pepper, and Hans Fangohr (University of Southampton) of Oxs_DMexchange6ngbr.h - January 2017
+ * $w_\text{dmi} = D\mathbf{m} \cdot (\nabla \times \mathbf{m})$
+ *
+ * Modification by Marijan Beg, Ryan A. Pepper, and Hans Fangohr (University of Southampton) of Oxs_DMexchange6ngbr.h [1] - January 2017
  *
  * Developed as a part of OpenDreamKit Horizon 2020 European Research Infrastructure
  * project (676541), and the EPSRC Programme grant on Skyrmionics (EP/N032128/1).
+ *
+ * [1] Rohart, S., & Thiaville, A. Physical Review B, 88, 184422 (2013).
  *
 */
 
