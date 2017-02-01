@@ -11,8 +11,11 @@ Modification of OOMMF extension Oxs_DMexchange6ngbr.h [2].
 How to install:
 ---------------
 
-Copy `BulkDMI.h` and `BulkDMI.cc` to `oommf/app/oxs/local/` directory,
-and run `pimake`. After that, bulk DMI can be accessed from MIF files.
+1. Copy `BulkDMI.h` and `BulkDMI.cc` to `oommf/app/oxs/local/` directory.
+
+2. Run `pimake`.
+
+3. Use Oxs_BulkDMI in MIF scripts.
 
 Acknowledgements:
 -----------------
