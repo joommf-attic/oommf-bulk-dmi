@@ -58,7 +58,7 @@ Specify Oxs_TimeDriver [subst {
 	atlas Oxs_MultiAtlas:atlas
 	script_args { rawpt minpt maxpt }
   } }
-  basename Syrmion_D=$D
+  basename Skyrmion_
 }]
 
 Destination archive mmArchive
