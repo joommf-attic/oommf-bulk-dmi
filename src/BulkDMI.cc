@@ -41,7 +41,9 @@ Oxs_BulkDMI::Oxs_BulkDMI(
   Oxs_Director* newdtr, // App director
   const char* argstr)   // MIF input block parameters
   : Oxs_Energy(name,newdtr,argstr),
-    A_size(0), D(NULL), mesh_id(0)
+    A_size(0), D(NULL),
+    xperiodic(0),yperiodic(0),zperiodic(0),
+    mesh_id(0)
 {
   // Process arguments
   OXS_GET_INIT_EXT_OBJECT("atlas",Oxs_Atlas,atlas);
@@ -149,6 +151,8 @@ void Oxs_BulkDMI::GetEnergy
  Oxs_EnergyData& oed
  ) const
 {
+
+
   // See if mesh and/or atlas has changed.
   if(mesh_id !=  state.mesh->Id() || !atlaskey.SameState()) {
     // Setup region mapping
@@ -178,15 +182,34 @@ void Oxs_BulkDMI::GetEnergy
   Oxs_MeshValue<OC_REAL8m>& energy = *oed.energy_buffer;
   Oxs_MeshValue<ThreeVector>& field = *oed.field_buffer;
 
-  const Oxs_RectangularMesh* mesh
-    = dynamic_cast<const Oxs_RectangularMesh*>(state.mesh);
+  // Check periodicity --------------------------------------------------------
+  const Oxs_CommonRectangularMesh* mesh
+    = dynamic_cast<const Oxs_CommonRectangularMesh*>(state.mesh);
   if(mesh==NULL) {
-    String msg = String("Import mesh to Oxs_BulkDMI::GetEnergy()"
-                        " routine of object ")
-      + String(InstanceName())
-      + String(" is not an Oxs_RectangularMesh object.");
-    throw Oxs_Ext::Error(msg.c_str());
+    String msg=String("Object ")
+      + String(state.mesh->InstanceName())
+      + String(" is not a rectangular mesh.");
+    throw Oxs_ExtError(this,msg);
   }
+
+  const Oxs_RectangularMesh* rmesh 
+    = dynamic_cast<const Oxs_RectangularMesh*>(mesh);
+  const Oxs_PeriodicRectangularMesh* pmesh
+    = dynamic_cast<const Oxs_PeriodicRectangularMesh*>(mesh);
+  if(pmesh!=NULL) {
+    // Rectangular, periodic mesh
+    xperiodic = pmesh->IsPeriodicX();
+    yperiodic = pmesh->IsPeriodicY();
+    zperiodic = pmesh->IsPeriodicZ();
+  } else if (rmesh!=NULL) {
+    xperiodic=0; yperiodic=0; zperiodic=0;
+  } else {
+    String msg=String("Unknown mesh type: \"")
+      + String(ClassName())
+      + String("\".");
+    throw Oxs_ExtError(this,msg.c_str());
+  }
+  // --------------------------------------------------------------------------
 
   OC_INDEX xdim = mesh->DimX();
   OC_INDEX ydim = mesh->DimY();
@@ -212,38 +235,75 @@ void Oxs_BulkDMI::GetEnergy
 	}
 	OC_REAL8m* Drow = D[region_id[i]];
 	ThreeVector sum(0.,0.,0.);
+    OC_INDEX j;
+    OC_INDEX tf = 0;
 
-	if(x>0) {
-	  OC_INDEX j = i-1;
-	  OC_REAL8m Dpair = Drow[region_id[j]];
-	  ThreeVector uij(-1.,0.,0);
-	  if(Ms_inverse[j]!=0.0) sum += 0.5*Dpair*wgtx*(spin[j] ^ uij);
-	}
-	if(y>0) {
-	  OC_INDEX j = i-xdim;
-	  OC_REAL8m Dpair = Drow[region_id[j]];
-	  ThreeVector uij(0.,-1.,0);
-	  if(Ms_inverse[j]!=0.0) sum += 0.5*Dpair*wgty*(spin[j] ^ uij);
-	}
-	if(z>0) {
+	if(x > 0) {
+        j = i - 1;        // j = mesh->Index(x-1,y,z)
+        tf = 1;
+    } else if (xperiodic) {
+        j = i - 1 + xdim; // x == 0, j = Index(xdim-1,y,z);
+        tf = 1;
+    }
+    if (tf == 1) {
+	    OC_REAL8m Dpair = Drow[region_id[j]];
+	    ThreeVector uij(-1.,0.,0);
+	    if(Ms_inverse[j]!=0.0) sum += 0.5*Dpair*wgtx*(spin[j] ^ uij);
+        tf = 0;
+    }
+
+	if(y > 0) {
+        j = i-xdim;
+        tf = 1;
+    } else if (yperiodic) {
+        j = i - xdim + xydim;
+        tf = 1;
+    }
+    if (tf == 1) {
+        OC_REAL8m Dpair = Drow[region_id[j]];
+        ThreeVector uij(0.,-1.,0);
+        if(Ms_inverse[j]!=0.0) sum += 0.5*Dpair*wgty*(spin[j] ^ uij);
+        tf = 0;
+    }
+
+    // No PBC in the z direction
+	if(z > 0) {
 	  OC_INDEX j = i-xydim;
 	  OC_REAL8m Dpair = Drow[region_id[j]];
 	  ThreeVector uij(0.,0.,-1.);
 	  if(Ms_inverse[j]!=0.0) sum += 0.5*Dpair*wgtz*(spin[j] ^ uij);
 	}
-	if(x<xdim-1) {
-	  OC_INDEX j = i+1;
-	  OC_REAL8m Dpair = Drow[region_id[j]];
-	  ThreeVector uij(1.,0.,0);
-	  if(Ms_inverse[j]!=0.0) sum += 0.5*Dpair*wgtx*(spin[j] ^ uij);
-	}
-	if(y<ydim-1) {
-	  OC_INDEX j = i+xdim;
-	  OC_REAL8m Dpair = Drow[region_id[j]];
-	  ThreeVector uij(0.,1.,0);
-	  if(Ms_inverse[j]!=0.0) sum += 0.5*Dpair*wgty*(spin[j] ^ uij);
-	}
-	if(z<zdim-1) {
+
+	if (x < xdim-1) {
+        j = i + 1;
+        tf = 1;
+    } else if (xperiodic) {
+        j = i + 1 - xdim;
+        tf = 1;
+    }
+    if (tf == 1) {
+        OC_REAL8m Dpair = Drow[region_id[j]];
+        ThreeVector uij(1.,0.,0);
+        if(Ms_inverse[j]!=0.0) sum += 0.5*Dpair*wgtx*(spin[j] ^ uij);
+        tf = 0;
+    }
+
+	if (y < ydim-1) {
+        j = i + xdim;
+        tf = 1;
+    } else if (yperiodic) {
+        j = i + xdim - xydim;
+        tf = 1;
+    }
+    if (tf == 1) {
+        OC_REAL8m Dpair = Drow[region_id[j]];
+        ThreeVector uij(0.,1.,0);
+        if(Ms_inverse[j]!=0.0) sum += 0.5*Dpair*wgty*(spin[j] ^ uij);
+        tf = 0;
+    }
+
+    // No PBC in the z direction
+	if(z < zdim-1) {
 	  OC_INDEX j = i+xydim;
 	  OC_REAL8m Dpair = Drow[region_id[j]];
 	  ThreeVector uij(0.,0.,1.);

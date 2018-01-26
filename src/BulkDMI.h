@@ -34,6 +34,11 @@ private:
   mutable OC_INT4m mesh_id;
   mutable Oxs_MeshValue<OC_INT4m> region_id;
 
+  // Periodic boundaries?
+  mutable int xperiodic;
+  mutable int yperiodic;
+  mutable int zperiodic;
+
 protected:
   virtual void GetEnergy(const Oxs_SimState& state,
 			 Oxs_EnergyData& oed) const;
