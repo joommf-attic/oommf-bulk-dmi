@@ -266,12 +266,18 @@ void Oxs_BulkDMI::GetEnergy
         tf = 0;
     }
 
-    // No PBC in the z direction
 	if(z > 0) {
-	  OC_INDEX j = i-xydim;
-	  OC_REAL8m Dpair = Drow[region_id[j]];
-	  ThreeVector uij(0.,0.,-1.);
-	  if(Ms_inverse[j]!=0.0) sum += 0.5*Dpair*wgtz*(spin[j] ^ uij);
+        j = i - xydim;
+        tf = 1;
+    } else if (zperiodic) {
+        j = i - xydim + xyzdim;
+        tf = 1;
+    }
+	if(tf == 1) {
+	    OC_REAL8m Dpair = Drow[region_id[j]];
+	    ThreeVector uij(0.,0.,-1.);
+	    if(Ms_inverse[j]!=0.0) sum += 0.5*Dpair*wgtz*(spin[j] ^ uij);
+        tf = 0;
 	}
 
 	if (x < xdim-1) {
@@ -302,12 +308,19 @@ void Oxs_BulkDMI::GetEnergy
         tf = 0;
     }
 
-    // No PBC in the z direction
-	if(z < zdim-1) {
-	  OC_INDEX j = i+xydim;
-	  OC_REAL8m Dpair = Drow[region_id[j]];
-	  ThreeVector uij(0.,0.,1.);
-	  if(Ms_inverse[j]!=0.0) sum += 0.5*Dpair*wgtz*(spin[j] ^ uij);
+	if(z < zdim - 1) {
+        j = i + xydim;
+        tf = 1;
+    } else if (zperiodic) {
+        j = i + xydim - xyzdim;
+        tf = 1;
+    }
+	if (tf == 1) {
+        OC_INDEX j = i+xydim;
+        OC_REAL8m Dpair = Drow[region_id[j]];
+        ThreeVector uij(0.,0.,1.);
+        if(Ms_inverse[j]!=0.0) sum += 0.5*Dpair*wgtz*(spin[j] ^ uij);
+        tf = 0;
 	}
 	
 	field[i] = (hcoef*Msii) * sum;
