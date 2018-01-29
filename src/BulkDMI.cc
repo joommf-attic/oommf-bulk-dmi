@@ -4,7 +4,7 @@
  *
  * $w_\text{dmi} = D\mathbf{m} \cdot (\nabla \times \mathbf{m})$
  *
- * Modification by Marijan Beg, Ryan A. Pepper, and Hans Fangohr (University of Southampton) of Oxs_DMexchange6ngbr.h [1] - January 2017
+ * Modification by Marijan Beg, Ryan A. Pepper, D. Cortes and Hans Fangohr (University of Southampton) of Oxs_DMexchange6ngbr.h [1] - January 2017
  *
  * Developed as a part of OpenDreamKit Horizon 2020 European Research Infrastructure
  * project (676541), and the EPSRC Programme grant on Skyrmionics (EP/N032128/1).
@@ -25,7 +25,7 @@
 #include "threevector.h"
 #include "rectangularmesh.h"
 #include "BulkDMI.h"
-#include "energy.h"		// Needed to make MSVC++ 5 happy
+#include "energy.h"     // Needed to make MSVC++ 5 happy
 
 OC_USE_STRING;
 
@@ -78,10 +78,10 @@ Oxs_BulkDMI::Oxs_BulkDMI(
   if(params.size()%3!=0) {
       char buf[512];
       Oc_Snprintf(buf,sizeof(buf),
-		  "Number of elements in D sub-list must be"
-		  " divisible by 3"
-		  " (actual sub-list size: %u)",
-		  (unsigned int)params.size());
+          "Number of elements in D sub-list must be"
+          " divisible by 3"
+          " (actual sub-list size: %u)",
+          (unsigned int)params.size());
       throw Oxs_Ext::Error(this,buf);
   }
   for(i=0;i<params.size();i+=3) {
@@ -91,25 +91,25 @@ Oxs_BulkDMI::Oxs_BulkDMI(
       char buf[4096];
       char* cptr=buf;
       if(i1<0) {
-	Oc_Snprintf(buf,sizeof(buf),
-		    "First entry in D[%u] sub-list, \"%s\","
-		    " is not a known region in atlas \"%s\".  ",
-		    i/3,params[i].c_str(),atlas->InstanceName());
-	cptr += strlen(buf);
+    Oc_Snprintf(buf,sizeof(buf),
+            "First entry in D[%u] sub-list, \"%s\","
+            " is not a known region in atlas \"%s\".  ",
+            i/3,params[i].c_str(),atlas->InstanceName());
+    cptr += strlen(buf);
       }
       if(i2<0) {
-	Oc_Snprintf(cptr,sizeof(buf)-(cptr-buf),
-		    "Second entry in D[%u] sub-list, \"%s\","
-		    " is not a known region in atlas \"%s\".  ",
-		    i/3,params[i+1].c_str(),atlas->InstanceName());
+    Oc_Snprintf(cptr,sizeof(buf)-(cptr-buf),
+            "Second entry in D[%u] sub-list, \"%s\","
+            " is not a known region in atlas \"%s\".  ",
+            i/3,params[i+1].c_str(),atlas->InstanceName());
       }
       String msg = String(buf);
       msg += String("Known regions:");
       vector<String> regions;
       atlas->GetRegionList(regions);
       for(unsigned int j=0;j<regions.size();++j) {
-	msg += String(" \n");
-	msg += regions[j];
+    msg += String(" \n");
+    msg += regions[j];
       }
       throw Oxs_Ext::Error(this,msg);
     }
@@ -118,9 +118,9 @@ Oxs_BulkDMI::Oxs_BulkDMI(
     if(err) {
       char buf[4096];
       Oc_Snprintf(buf,sizeof(buf),
-		  "Third entry in D[%u] sub-list, \"%s\","
-		  " is not a valid floating point number.",
-		  i/3,params[i+2].c_str());
+          "Third entry in D[%u] sub-list, \"%s\","
+          " is not a valid floating point number.",
+          i/3,params[i+2].c_str());
       throw Oxs_Ext::Error(this,buf);
     }
     D[i1][i2]=Dpair;
@@ -163,12 +163,12 @@ void Oxs_BulkDMI::GetEnergy
     for(OC_INDEX i=0;i<size;i++) {
       state.mesh->Center(i,location);
       if((region_id[i] = atlas->GetRegionId(location))<0) {
-	String msg = String("Import mesh to Oxs_BulkDMI::GetEnergy()"
+    String msg = String("Import mesh to Oxs_BulkDMI::GetEnergy()"
                             " routine of object ")
           + String(InstanceName())
-	  + String(" has points outside atlas ")
-	  + String(atlas->InstanceName());
-	throw Oxs_Ext::Error(msg.c_str());
+      + String(" has points outside atlas ")
+      + String(atlas->InstanceName());
+    throw Oxs_Ext::Error(msg.c_str());
       }
     }
     mesh_id = state.mesh->Id();
@@ -192,7 +192,7 @@ void Oxs_BulkDMI::GetEnergy
     throw Oxs_ExtError(this,msg);
   }
 
-  const Oxs_RectangularMesh* rmesh 
+  const Oxs_RectangularMesh* rmesh
     = dynamic_cast<const Oxs_RectangularMesh*>(mesh);
   const Oxs_PeriodicRectangularMesh* pmesh
     = dynamic_cast<const Oxs_PeriodicRectangularMesh*>(mesh);
@@ -215,6 +215,7 @@ void Oxs_BulkDMI::GetEnergy
   OC_INDEX ydim = mesh->DimY();
   OC_INDEX zdim = mesh->DimZ();
   OC_INDEX xydim = xdim*ydim;
+  OC_INDEX xyzdim = xdim*ydim*zdim;
 
   OC_REAL8m wgtx = 1.0/(mesh->EdgeLengthX());
   OC_REAL8m wgty = 1.0/(mesh->EdgeLengthY());
@@ -225,106 +226,98 @@ void Oxs_BulkDMI::GetEnergy
   for(OC_INDEX z=0;z<zdim;z++) {
     for(OC_INDEX y=0;y<ydim;y++) {
       for(OC_INDEX x=0;x<xdim;x++) {
-	OC_INDEX i = mesh->Index(x,y,z); // Get base linear address
-	ThreeVector base = spin[i];
-	OC_REAL8m Msii = Ms_inverse[i];
-	if(Msii == 0.0) {
-	  energy[i]=0.0;
-	  field[i].Set(0.,0.,0.);
-	  continue;
-	}
-	OC_REAL8m* Drow = D[region_id[i]];
-	ThreeVector sum(0.,0.,0.);
-    OC_INDEX j;
-    OC_INDEX tf = 0;
+        OC_INDEX i = mesh->Index(x,y,z); // Get base linear address
+        ThreeVector base = spin[i];
+        OC_REAL8m Msii = Ms_inverse[i];
+        if(Msii == 0.0) {
+          energy[i] = 0.0;
+          field[i].Set(0.,0.,0.);
+          continue;
+        }
+        OC_REAL8m* Drow = D[region_id[i]];
+        ThreeVector sum(0.,0.,0.);
+        OC_INDEX j;
 
-	if(x > 0) {
-        j = i - 1;        // j = mesh->Index(x-1,y,z)
-        tf = 1;
-    } else if (xperiodic) {
-        j = i - 1 + xdim; // x == 0, j = Index(xdim-1,y,z);
-        tf = 1;
-    }
-    if (tf == 1) {
-	    OC_REAL8m Dpair = Drow[region_id[j]];
-	    ThreeVector uij(-1.,0.,0);
-	    if(Ms_inverse[j]!=0.0) sum += 0.5*Dpair*wgtx*(spin[j] ^ uij);
-        tf = 0;
-    }
+        if(x > 0 || xperiodic) {
+          if(x > 0) {
+            j = i - 1;        // j = mesh->Index(x-1,y,z)
+          } else if (xperiodic) {
+            j = i - 1 + xdim; // x == 0, j = Index(xdim-1,y,z);
+          }
+          if(Ms_inverse[j] != 0.0) {
+            OC_REAL8m Dpair = Drow[region_id[j]];
+            ThreeVector uij(-1.,0.,0);
+            sum += 0.5 * Dpair * wgtx * (spin[j] ^ uij);
+          }
+        }
 
-	if(y > 0) {
-        j = i-xdim;
-        tf = 1;
-    } else if (yperiodic) {
-        j = i - xdim + xydim;
-        tf = 1;
-    }
-    if (tf == 1) {
-        OC_REAL8m Dpair = Drow[region_id[j]];
-        ThreeVector uij(0.,-1.,0);
-        if(Ms_inverse[j]!=0.0) sum += 0.5*Dpair*wgty*(spin[j] ^ uij);
-        tf = 0;
-    }
+        if(y > 0 || yperiodic) {
+          if(y > 0) {
+            j = i-xdim;
+          } else if (yperiodic) {
+            j = i - xdim + xydim;
+          }
+          if(Ms_inverse[j] != 0.0) {
+            OC_REAL8m Dpair = Drow[region_id[j]];
+            ThreeVector uij(0.,-1.,0);
+            sum += 0.5 * Dpair * wgty * (spin[j] ^ uij);
+          }
+        }
 
-	if(z > 0) {
-        j = i - xydim;
-        tf = 1;
-    } else if (zperiodic) {
-        j = i - xydim + xyzdim;
-        tf = 1;
-    }
-	if(tf == 1) {
-	    OC_REAL8m Dpair = Drow[region_id[j]];
-	    ThreeVector uij(0.,0.,-1.);
-	    if(Ms_inverse[j]!=0.0) sum += 0.5*Dpair*wgtz*(spin[j] ^ uij);
-        tf = 0;
-	}
+        if(z > 0 || zperiodic) {
+          if(z > 0) {
+            j = i - xydim;
+          } else if (zperiodic) {
+            j = i - xydim + xyzdim;
+          }
+          if(Ms_inverse[j] != 0.0) {
+            OC_REAL8m Dpair = Drow[region_id[j]];
+            ThreeVector uij(0.,0.,-1.);
+            sum += 0.5 * Dpair * wgtz * (spin[j] ^ uij);
+          }
+        }
 
-	if (x < xdim-1) {
-        j = i + 1;
-        tf = 1;
-    } else if (xperiodic) {
-        j = i + 1 - xdim;
-        tf = 1;
-    }
-    if (tf == 1) {
-        OC_REAL8m Dpair = Drow[region_id[j]];
-        ThreeVector uij(1.,0.,0);
-        if(Ms_inverse[j]!=0.0) sum += 0.5*Dpair*wgtx*(spin[j] ^ uij);
-        tf = 0;
-    }
+        if(x < xdim-1 || xperiodic) {
+          if (x < xdim-1) {
+            j = i + 1;
+          } else if (xperiodic) {
+            j = i + 1 - xdim;
+          }
+          if (Ms_inverse[j] != 0.0) {
+            OC_REAL8m Dpair = Drow[region_id[j]];
+            ThreeVector uij(1.,0.,0);
+            sum += 0.5*Dpair*wgtx*(spin[j] ^ uij);
+          }
+        }
 
-	if (y < ydim-1) {
-        j = i + xdim;
-        tf = 1;
-    } else if (yperiodic) {
-        j = i + xdim - xydim;
-        tf = 1;
-    }
-    if (tf == 1) {
-        OC_REAL8m Dpair = Drow[region_id[j]];
-        ThreeVector uij(0.,1.,0);
-        if(Ms_inverse[j]!=0.0) sum += 0.5*Dpair*wgty*(spin[j] ^ uij);
-        tf = 0;
-    }
+        if(y < ydim - 1 || yperiodic) {
+          if (y < ydim-1) {
+            j = i + xdim;
+          } else if (yperiodic) {
+            j = i + xdim - xydim;
+          }
+          if(Ms_inverse[j] != 0.0) {
+            OC_REAL8m Dpair = Drow[region_id[j]];
+            ThreeVector uij(0.,1.,0);
+            sum += 0.5 * Dpair * wgty * (spin[j] ^ uij);
+          }
+        }
 
-	if(z < zdim - 1) {
-        j = i + xydim;
-        tf = 1;
-    } else if (zperiodic) {
-        j = i + xydim - xyzdim;
-        tf = 1;
-    }
-	if (tf == 1) {
-        OC_INDEX j = i+xydim;
-        OC_REAL8m Dpair = Drow[region_id[j]];
-        ThreeVector uij(0.,0.,1.);
-        if(Ms_inverse[j]!=0.0) sum += 0.5*Dpair*wgtz*(spin[j] ^ uij);
-        tf = 0;
-	}
-	
-	field[i] = (hcoef*Msii) * sum;
-	energy[i] = (sum * base);
+        if(z < zdim - 1 || zperiodic) {
+          if(z < zdim - 1) {
+            j = i + xydim;
+          } else if (zperiodic) {
+            j = i + xydim - xyzdim;
+          }
+          if(Ms_inverse[j] != 0.0) {
+            OC_REAL8m Dpair = Drow[region_id[j]];
+            ThreeVector uij(0.,0.,1.);
+            sum += 0.5 * Dpair * wgtz * (spin[j] ^ uij);
+          }
+        }
+
+        field[i] = (hcoef*Msii) * sum;
+        energy[i] = (sum * base);
       }
     }
   }

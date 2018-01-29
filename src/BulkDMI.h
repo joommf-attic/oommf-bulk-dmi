@@ -4,7 +4,7 @@
  *
  * $w_\text{dmi} = D\mathbf{m} \cdot (\nabla \times \mathbf{m})$
  *
- * Modification by Marijan Beg, Ryan A. Pepper, and Hans Fangohr (University of Southampton) of Oxs_DMexchange6ngbr.h [1] - January 2017
+ * Modification by Marijan Beg, Ryan A. Pepper, D. Cortes and Hans Fangohr (University of Southampton) of Oxs_DMexchange6ngbr.h [1] - January 2017
  *
  * Developed as a part of OpenDreamKit Horizon 2020 European Research Infrastructure
  * project (676541), and the EPSRC Programme grant on Skyrmionics (EP/N032128/1).
